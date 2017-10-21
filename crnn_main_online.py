@@ -10,12 +10,12 @@ import numpy as np
 from warpctc_pytorch import CTCLoss
 import os
 import utils
-import dataset
+import dataset_online as dataset
 import pickle
 from collections import OrderedDict
 import operator
 
-import models.crnn as crnn
+import models.combcrnn as crnn
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--trainroot', required=True, help='path to dataset')
@@ -27,11 +27,10 @@ parser.add_argument('--imgW', type=int, default=512, help='the width of the inpu
 parser.add_argument('--nh', type=int, default=256, help='size of the lstm hidden state')
 parser.add_argument('--niter', type=int, default=25, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.0001, help='learning rate for Critic, default=0.00005')
-parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
+parser.add_argument('--beta1', type=float, default=0.9, help='beta1 for adam. default=0.5')
 parser.add_argument('--cuda', action='store_true', help='enables cuda')
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--crnn', default='', help="path to crnn (to continue training)")
-# parser.add_argument('--alphabet', type=str, default='0123456789abcdefghijklmnopqrstuvwxyz')
 parser.add_argument('--experiment', default=None, help='Where to store samples and models')
 parser.add_argument('--displayInterval', type=int, default=1, help='Interval to be displayed')
 parser.add_argument('--n_test_disp', type=int, default=10, help='Number of samples to display when test')
@@ -42,23 +41,14 @@ parser.add_argument('--adadelta', action='store_true', help='Whether to use adad
 parser.add_argument('--keep_ratio', action='store_true', help='whether to keep ratio for image resize')
 parser.add_argument('--random_sample', action='store_true', help='whether to sample the dataset with random sampler')
 opt = parser.parse_args()
-# print(opt)
-# d = pickle.load(open('/home/sreekar/Desktop/IAMData/label_dict.p','rb'))
-# d_ = OrderedDict(sorted(d.items(), key=operator.itemgetter(1)))
-# # print (d_)
-# alphabet = ''
-# for i in d_:
-#     alphabet += i
-# print (alphabet)
 
-# alphabet = '0123456789abcdefghijklmnopqrstuvwxyz!.,\'"#()&+*-/;:? '
 alphabet = ''
 
 if opt.experiment is None:
     opt.experiment = 'expr'
 os.system('mkdir {0}'.format(opt.experiment))
 
-opt.manualSeed = random.randint(1, 10000)  # fix seed
+opt.manualSeed = random.randint(1, 10000)
 print("Random Seed: ", opt.manualSeed)
 random.seed(opt.manualSeed)
 np.random.seed(opt.manualSeed)
@@ -105,9 +95,12 @@ crnn.apply(weights_init)
 if opt.crnn != '':
     print('loading pretrained model from %s' % opt.crnn)
     crnn.load_state_dict(torch.load(opt.crnn))
+
+print(opt)
 print(crnn)
 
 image = torch.FloatTensor(opt.batchSize, 3, opt.imgH, opt.imgH)
+stkdata = torch.FloatTensor(opt.batchSize, 524, 2)
 text = torch.IntTensor(opt.batchSize * 5)
 length = torch.IntTensor(opt.batchSize)
 
@@ -115,9 +108,11 @@ if opt.cuda:
     crnn.cuda()
     crnn = torch.nn.DataParallel(crnn, device_ids=range(opt.ngpu))
     image = image.cuda()
+    stkdata = stkdata.cuda()
     criterion = criterion.cuda()
 
 image = Variable(image)
+stkdata = Variable(stkdata)
 text = Variable(text)
 length = Variable(length)
 
@@ -129,6 +124,7 @@ if opt.adam:
     optimizer = optim.Adam(crnn.parameters(), lr=opt.lr,
                            betas=(opt.beta1, 0.999))
 elif opt.adadelta:
+    opt.lr = 1
     optimizer = optim.Adadelta(crnn.parameters(), lr=opt.lr)
 else:
     optimizer = optim.RMSprop(crnn.parameters(), lr=opt.lr)
@@ -154,15 +150,18 @@ def val(net, dataset, criterion, max_iter=100):
         print(i)
         data = val_iter.next()
         i += 1
-        cpu_images, cpu_texts = data
+        cpu_images, cpu_stk, cpu_texts = data
         batch_size = cpu_images.size(0)
         utils.loadData(image, cpu_images)
+        utils.loadData(stkdata, cpu_stk)
 
         t, l = converter.encode(cpu_texts)
         utils.loadData(text, t)
         utils.loadData(length, l)
 
-        preds = crnn(image)
+        stkimg = Variable(cpu_stk.cuda())
+
+        preds = crnn(image, stkimg)
         preds_size = Variable(torch.IntTensor([preds.size(0)] * batch_size))
         cost = criterion(preds, text, preds_size, length) / batch_size
         loss_avg.add(cost)
@@ -170,8 +169,7 @@ def val(net, dataset, criterion, max_iter=100):
         print(preds)
         _, preds = preds.max(2)
         print(preds)
-        # preds = torch.squeeze(preds, 1)
-        # preds = preds.squeeze(2)
+
         preds = preds.transpose(1, 0).contiguous().view(-1)
         print(preds)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
@@ -195,21 +193,21 @@ def val(net, dataset, criterion, max_iter=100):
         print('%-20s => %-20s, gt: %-20s' % (raw_pred, pred, gt))
 
     accuracy = n_correct / float(max_iter * opt.batchSize)
-    print('Test loss: %f, accuray: %f' % (loss_avg.val(), accuracy),n_correct)
+    print('Test loss: %f, accuracy: %f' % (loss_avg.val(), accuracy),n_correct)
 
 
 def trainBatch(net, criterion, optimizer):
     data = train_iter.next()
-    cpu_images, cpu_texts = data
+    cpu_images, cpu_stk, cpu_texts = data
     batch_size = cpu_images.size(0)
     utils.loadData(image, cpu_images)
-    # print (cpu_texts)
     t, l = converter.encode(cpu_texts)
-    # print (t)
+
     utils.loadData(text, t)
+    utils.loadData(stkdata, cpu_stk)
     utils.loadData(length, l)
 
-    preds = crnn(image)
+    preds = crnn(image, stkdata)
     preds_size = Variable(torch.IntTensor([preds.size(0)] * batch_size))
     cost = criterion(preds, text, preds_size, length) / batch_size
     crnn.zero_grad()

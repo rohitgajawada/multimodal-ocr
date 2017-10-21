@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 class BidirectionalLSTM(nn.Module):
@@ -58,13 +59,20 @@ class CRNN(nn.Module):
             BidirectionalLSTM(520, nh, nh),
             BidirectionalLSTM(nh, nh, nclass))
 
-    def forward(self, x, stk):
+    def forward(self, x, stk1):
 
-        sx, sy, sz = torch.split(stk, 1, 1)
-        sx, sy, sz = sx.contiguous().float().view(1, 1, 1, -1), sy.contiguous().float().view(1, 1, 1, -1), sz.contiguous().float().view(1, 1, 1, -1)
+        # sx, sy, sz = torch.split(stk, 1, 1)
+        # sx, sy, sz = sx.contiguous().float().view(1, 1, 1, -1), sy.contiguous().float().view(1, 1, 1, -1), sz.contiguous().float().view(1, 1, 1, -1)
+        #
+        # stk1 = torch.cat((sx, sy), dim=2)
 
-        stk1 = torch.cat((sx, sy), dim=2)
-        # stk2 = torch.cat((sx, sy, sz), dim=2)
+        # sx, sy = torch.split(stk, 1, 2)
+        # sx, sy = sx.contiguous().float().view(1, 1, 1, -1), sy.contiguous().float().view(1, 1, 1, -1)
+        #
+        # stk1 = torch.cat((sx, sy), dim=2)
+
+        stk1 = stk1.contiguous().transpose(1, 2)
+        stk1 = stk1.contiguous().view(-1, 1, 2, 524)
 
         xa = self.relu(self.bn1a(self.conv1a(stk1)))
         print xa.size()
@@ -123,21 +131,21 @@ class CRNN(nn.Module):
 
         return output
 
-import torch
-from torch.autograd import Variable
-import numpy as np
-import cPickle
 
-path = './words/testword1_1_new.p'
-f = open(path, 'rb')
-stk = cPickle.load(f)
-f.close()
-stk = np.array(stk, dtype=float)
-
-stk = Variable(torch.from_numpy(stk)).float()
-
-stk = Variable(torch.randn(524, 3))
-im = Variable(torch.randn(1, 3, 32, 512))
-net = CRNN(32, 3, 10, 256)
-
-output = net(im, stk)
+# from torch.autograd import Variable
+# import numpy as np
+# import cPickle
+#
+# path = '/home/rohit/Documents/cvitwork/ocrnew/testing/testword293_2.p'
+# f = open(path, 'rb')
+# stk = cPickle.load(f)
+# f.close()
+# stk = np.array(stk, dtype=float)
+#
+# stk = Variable(torch.from_numpy(stk)).float()
+#
+# stk = Variable(torch.randn(8, 524, 2))
+# im = Variable(torch.randn(8, 3, 32, 512))
+# net = CRNN(32, 3, 10, 256)
+#
+# output = net(im, stk)

@@ -97,6 +97,7 @@ class strLabelConverter(object):
         lis = []
         pntr = 0
         if raw == False:
+            print("length", length)
             for i in length:
                 # print (t[pntr:pntr+i])
                 text = ''
@@ -108,6 +109,7 @@ class strLabelConverter(object):
                         if int(val) == t[pntr+j]:
                             continue
                     text += str(t[pntr+j])+','
+                    print(text)
                 # print (text)
                 pntr += i
                 lis.append(text[:-1])
