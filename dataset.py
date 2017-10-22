@@ -15,7 +15,7 @@ import numpy as np
 
 class lmdbDataset(Dataset):
 
-    def __init__(self, root=None, transform=None, target_transform=None):
+    def __init__(self, root=None, transform=None, target_transform=None ,online=False):
         self.env = lmdb.open(
             root,
             max_readers=1,
@@ -34,6 +34,7 @@ class lmdbDataset(Dataset):
 
         self.transform = transform
         self.target_transform = target_transform
+        self.online = online
 
     def __len__(self):
         return self.nSamples
@@ -62,6 +63,14 @@ class lmdbDataset(Dataset):
 
             if self.target_transform is not None:
                 label = self.target_transform(label)
+
+            if self.online == True:
+                str_key = 'stroke-%09d' % index
+                f_ = open(str(txn.get(str_key),'rb'))
+                stroke_data = pickle.load(f_)
+                f_.close()
+                return (img,label,stroke_data)
+
 
         return (img, label)
 
