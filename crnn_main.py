@@ -20,7 +20,7 @@ import models.crnn as crnn
 parser = argparse.ArgumentParser()
 parser.add_argument('--trainroot', required=True, help='path to dataset')
 parser.add_argument('--valroot', required=True, help='path to dataset')
-parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
+parser.add_argument('--workers', type=int, help='number of data loading workers', default=6)
 parser.add_argument('--batchSize', type=int, default=128, help='input batch size')
 parser.add_argument('--imgH', type=int, default=32, help='the height of the input image to network')
 parser.add_argument('--imgW', type=int, default=512, help='the width of the input image to network')
@@ -96,6 +96,8 @@ crnn.apply(weights_init)
 if opt.crnn != '':
     print('loading pretrained model from %s' % opt.crnn)
     crnn.load_state_dict(torch.load(opt.crnn))
+
+print(opt)
 print(crnn)
 
 image = torch.FloatTensor(opt.batchSize, 3, opt.imgH, opt.imgH)

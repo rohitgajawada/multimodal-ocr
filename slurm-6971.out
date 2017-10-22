@@ -1,0 +1,40 @@
+mkdir: cannot create directory ‘expr’: File exists
+Random Seed:  6121
+Namespace(adadelta=True, adam=False, batchSize=64, beta1=0.9, crnn='', cuda=True, displayInterval=50, experiment='expr', imgH=32, imgW=512, keep_ratio=False, lr=0.0001, manualSeed=6121, n_test_disp=5, ngpu=1, nh=256, niter=100, random_sample=True, saveInterval=100000, trainroot='../train/', valInterval=1000, valroot='../val/', workers=2)
+CRNN (
+  (cnn): Sequential (
+    (conv0): Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (relu0): ReLU (inplace)
+    (pooling0): MaxPool2d (size=(2, 2), stride=(2, 2), dilation=(1, 1))
+    (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (relu1): ReLU (inplace)
+    (pooling1): MaxPool2d (size=(2, 2), stride=(2, 2), dilation=(1, 1))
+    (conv2): Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (batchnorm2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True)
+    (relu2): ReLU (inplace)
+    (conv3): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (relu3): ReLU (inplace)
+    (pooling2): MaxPool2d (size=(2, 2), stride=(2, 1), dilation=(1, 1))
+    (conv4): Conv2d(256, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (batchnorm4): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True)
+    (relu4): ReLU (inplace)
+    (conv5): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (relu5): ReLU (inplace)
+    (pooling3): MaxPool2d (size=(2, 2), stride=(2, 1), dilation=(1, 1))
+    (conv6): Conv2d(512, 512, kernel_size=(2, 2), stride=(1, 1))
+    (batchnorm6): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True)
+    (relu6): ReLU (inplace)
+  )
+  (rnn): Sequential (
+    (0): BidirectionalLSTM (
+      (rnn): LSTM(512, 256, bidirectional=True)
+      (embedding): Linear (512 -> 256)
+    )
+    (1): BidirectionalLSTM (
+      (rnn): LSTM(256, 256, bidirectional=True)
+      (embedding): Linear (512 -> 112)
+    )
+  )
+)
+lr is  1.0
+slurmstepd: *** JOB 6971 ON gnode22 CANCELLED AT 2017-10-22T15:57:56 ***
