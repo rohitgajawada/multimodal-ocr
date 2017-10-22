@@ -56,13 +56,17 @@ class lmdbDataset(Dataset):
             if self.transform is not None:
                 img = self.transform(img)
 
+            stk_key = 'stroke-%09d' % index
+            stroke = txn.get(stk_key)
+
             label_key = 'label-%09d' % index
             label = str(txn.get(label_key))
 
             if self.target_transform is not None:
                 label = self.target_transform(label)
 
-        return (img, label)
+        print stroke
+        return (img, stroke, label)
 
 
 class resizeNormalize(object):
@@ -114,7 +118,7 @@ class alignCollate(object):
         self.min_ratio = min_ratio
 
     def __call__(self, batch):
-        images, labels = zip(*batch)
+        images, strokes, labels = zip(*batch)
 
         imgH = self.imgH
         imgW = self.imgW
@@ -132,7 +136,7 @@ class alignCollate(object):
         images = [transform(image) for image in images]
         images = torch.cat([t.unsqueeze(0) for t in images], 0)
 
-        return images, labels
+        return images, strokes, labels
 
 
 if __name__ == '__main__':
