@@ -75,53 +75,53 @@ class CRNN(nn.Module):
         stk1 = stk1.contiguous().view(-1, 1, 2, 524)
 
         xa = self.relu(self.bn1a(self.conv1a(stk1)))
-        print xa.size()
+        # print xa.size()
         xa = self.mp1a(xa)
-        print xa.size()
+        # print xa.size()
         xa = self.relu(self.bn2a(self.conv2a(xa)))
-        print xa.size()
+        # print xa.size()
         xa = self.mp2a(xa)
-        print xa.size()
+        # print xa.size()
 
-        print "-----------"
+        # print "-----------"
 
         xb = self.relu(self.bn1b(self.conv1b(stk1)))
-        print xb.size()
+        # print xb.size()
         xb = self.mp1b(xb)
-        print xb.size()
+        # print xb.size()
         xb = self.relu(self.bn2b(self.conv2b(xb)))
-        print xb.size()
+        # print xb.size()
         xb = self.mp2b(xb)
-        print xb.size()
+        # print xb.size()
 
-        print "------------"
+        # print "------------"
 
         xa = xa.view(-1, 4, 4, 129)
         xb = xb.view(-1, 8, 2, 130)
 
-        print xa.size()
-        print xb.size()
+        # print xa.size()
+        # print xb.size()
 
         x = self.relu(self.conv0(x))
         x = self.mp0(x)
-        print(x.size())
+        # print(x.size())
         x = self.relu(self.conv1(x))
         x = self.mp1(x)
-        print(x.size())
+        # print(x.size())
         x = self.relu(self.bn2(self.conv2(x)))
         x = self.relu(self.conv3(x))
         x = self.mp3(x)
         x = torch.cat((x, xa), dim=1)
-        print(x.size())
+        # print(x.size())
 
         x = self.relu(self.bn4(self.conv4(x)))
         x = self.relu(self.conv5(x))
         x = self.mp5(x)
         x = torch.cat((x, xb), dim=1)
-        print(x.size())
+        # print(x.size())
 
         x = self.relu(self.bn6(self.conv6(x)))
-        print(x.size())
+        # print(x.size())
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2)

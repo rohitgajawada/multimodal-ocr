@@ -33,8 +33,8 @@ parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--crnn', default='', help="path to crnn (to continue training)")
 parser.add_argument('--experiment', default=None, help='Where to store samples and models')
 parser.add_argument('--displayInterval', type=int, default=1, help='Interval to be displayed')
-parser.add_argument('--n_test_disp', type=int, default=10, help='Number of samples to display when test')
-parser.add_argument('--valInterval', type=int, default=2, help='Interval to be displayed')
+parser.add_argument('--n_test_disp', type=int, default=5, help='Number of samples to display when test')
+parser.add_argument('--valInterval', type=int, default=20, help='Interval to be displayed')
 parser.add_argument('--saveInterval', type=int, default=5000, help='Interval to be displayed')
 parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is rmsprop)')
 parser.add_argument('--adadelta', action='store_true', help='Whether to use adadelta (default is rmsprop)')
@@ -147,7 +147,7 @@ def val(net, dataset, criterion, max_iter=100):
 
     max_iter = min(max_iter, len(data_loader))
     for i in range(max_iter):
-        print(i)
+
         data = val_iter.next()
         i += 1
         cpu_images, cpu_stk, cpu_texts = data
@@ -166,20 +166,14 @@ def val(net, dataset, criterion, max_iter=100):
         cost = criterion(preds, text, preds_size, length) / batch_size
         loss_avg.add(cost)
 
-        print(preds)
         _, preds = preds.max(2)
-        print(preds)
 
         preds = preds.transpose(1, 0).contiguous().view(-1)
-        print(preds)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
-        print(len(sim_preds))
         for pred, target in zip(sim_preds, converter.unpickle(cpu_texts)):
             n_correct_char = 0.0
-            print(pred, target)
+
             for p_,t_ in zip(pred.split(','),target):
-                print(p_)
-                print(t_)
                 if p_ != '':
                     if int(p_) == t_:
                         n_correct_char += 1

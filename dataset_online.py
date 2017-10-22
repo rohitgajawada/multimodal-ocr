@@ -10,6 +10,8 @@ import six
 import sys
 from PIL import Image
 import numpy as np
+import pickle
+import cPickle
 
 
 class lmdbDataset(Dataset):
@@ -65,8 +67,11 @@ class lmdbDataset(Dataset):
             if self.target_transform is not None:
                 label = self.target_transform(label)
 
-        print stroke
-        return (img, stroke, label)
+        # print type(stroke)
+        # exit()
+        stroke_up = pickle.load(stroke)
+        print stroke_up
+        return (img, stroke_up, label)
 
 
 class resizeNormalize(object):
