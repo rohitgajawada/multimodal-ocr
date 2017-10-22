@@ -15,7 +15,7 @@ import numpy as np
 
 class lmdbDataset(Dataset):
 
-    def __init__(self, root=None, transform=None, target_transform=None ,online=False):
+    def __init__(self, root=None, transform=None, target_transform=None ,flag=False):
         self.env = lmdb.open(
             root,
             max_readers=1,
@@ -34,7 +34,7 @@ class lmdbDataset(Dataset):
 
         self.transform = transform
         self.target_transform = target_transform
-        self.online = online
+        self.online = flag
 
     def __len__(self):
         return self.nSamples
