@@ -58,8 +58,10 @@ class lmdbDataset(Dataset):
             if self.transform is not None:
                 img = self.transform(img)
 
-            stk_key = 'stroke-%09d' % index
-            stroke = txn.get(stk_key)
+            str_key = 'stroke-%09d' % index
+            f_ = open(str(txn.get(str_key)),'rb')
+            stroke_data = pickle.load(f_)
+            f_.close()
 
             label_key = 'label-%09d' % index
             label = str(txn.get(label_key))
@@ -67,11 +69,8 @@ class lmdbDataset(Dataset):
             if self.target_transform is not None:
                 label = self.target_transform(label)
 
-        # print type(stroke)
-        # exit()
-        stroke_up = pickle.load(stroke)
-        print stroke_up
-        return (img, stroke_up, label)
+        print stroke_data
+        return (img, stroke_data, label)
 
 
 class resizeNormalize(object):
