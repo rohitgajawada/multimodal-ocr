@@ -59,6 +59,7 @@ class lmdbDataset(Dataset):
                 img = self.transform(img)
 
             str_key = 'stroke-%09d' % index
+            # print str(txn.get(str_key))
             f_ = open(str(txn.get(str_key)),'rb')
             stroke_data = pickle.load(f_)
             f_.close()
