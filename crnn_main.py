@@ -169,11 +169,10 @@ def val(net, dataset, criterion, max_iter=100):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
         for pred, target in zip(sim_preds, converter.unpickle(cpu_texts)):
-            n_correct_char = 0.0
             for p_,t_ in zip(pred.split(','),target):
                 if p_ != '':
                     if int(p_) == t_:
-                        n_correct_char += 1.0
+                        n_correct += 1.0
                 else:
                     n_correct += 0.0
 
