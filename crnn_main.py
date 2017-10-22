@@ -172,9 +172,10 @@ def val(net, dataset, criterion, max_iter=100):
                 if p_ != '':
                     if int(p_) == t_:
                         n_correct_char += 1
-                    n_correct += n_correct_char/float(len(target))
                 else:
                     n_correct += 0.0
+
+	    n_correct += n_correct_char/float(len(target))
 
     # t_ = converter.unpickle(cputexts)
     raw_preds = converter.decode(preds.data, preds_size.data, raw=True)[:opt.n_test_disp]
