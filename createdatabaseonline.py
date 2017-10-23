@@ -121,4 +121,4 @@ def run_func(lmdb_path,data_folder,target_file,num_words,TrainValSplit):
     createDataset(lmdb_path+'/train/',trn_inp1,trn_inp2,trn_lab)
     createDataset(lmdb_path+'/val/',val_inp1,val_inp2,val_lab)
 
-run_func('../../words/simple','../../words/recreate/','../../words/recreate/t.p',5,0.9)
+run_func('../../words/simple','../../words/recreate/','../../words/recreate/t.p',3000,0.9)

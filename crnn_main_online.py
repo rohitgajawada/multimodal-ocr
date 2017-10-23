@@ -193,12 +193,15 @@ def val(net, dataset, criterion, max_iter=100):
 def trainBatch(net, criterion, optimizer):
     data = train_iter.next()
     cpu_images, cpu_stk, cpu_texts = data
+    cpu_stk = torch.from_numpy(np.array(list(cpu_stk)))
 
     batch_size = cpu_images.size(0)
     utils.loadData(image, cpu_images)
     t, l = converter.encode(cpu_texts)
 
     utils.loadData(text, t)
+
+
     utils.loadData(stkdata, cpu_stk)
     utils.loadData(length, l)
 
