@@ -68,6 +68,7 @@ class lmdbDataset(Dataset):
             if self.target_transform is not None:
                 label = self.target_transform(label)
 
+        # print stroke_data
         return (img, stroke_data, label)
 
 

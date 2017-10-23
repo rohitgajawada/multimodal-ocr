@@ -139,7 +139,8 @@ def val(net, dataset, criterion, max_iter=100):
     net.eval()
     data_loader = torch.utils.data.DataLoader(
         dataset, shuffle=True, batch_size=opt.batchSize, num_workers=int(opt.workers))
-    val_iter = iter(data_loader)
+    # val_iter = iter(data_loader)
+    val_iter = iter(train_loader)
 
     i = 0
     n_correct = 0
@@ -147,18 +148,28 @@ def val(net, dataset, criterion, max_iter=100):
 
     max_iter = min(max_iter, len(data_loader))
     for i in range(max_iter):
-
+        print(i)
+        print("hyello")
         data = val_iter.next()
+        print("hi2")
         i += 1
         cpu_images, cpu_stk, cpu_texts = data
+        cpu_stk = torch.from_numpy(np.array(list(cpu_stk))).type(torch.FloatTensor)
+        print("hi3")
         batch_size = cpu_images.size(0)
         utils.loadData(image, cpu_images)
+        print("hi4")
+        print(cpu_stk)
         utils.loadData(stkdata, cpu_stk)
+        print("hi5")
+
+        print("hi1")
 
         t, l = converter.encode(cpu_texts)
         utils.loadData(text, t)
         utils.loadData(length, l)
 
+        print("hhh")
         stkimg = Variable(cpu_stk.cuda())
 
         preds = crnn(image, stkimg)
