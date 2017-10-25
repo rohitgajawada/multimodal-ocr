@@ -152,6 +152,8 @@ def val(net, dataset, criterion, max_iter=100):
     val_iter = iter(test_loader)
 
     n_correct = 0
+    n_total = 0
+
     loss_avg = utils.averager()
 
     max_iter = min(max_iter, len(test_loader))
@@ -182,23 +184,22 @@ def val(net, dataset, criterion, max_iter=100):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
         for pred, target in zip(sim_preds, converter.unpickle(cpu_texts)):
-            n_correct_char = 0.0
-
             for p_,t_ in zip(pred.split(','),target):
                 if p_ != '':
                     if int(p_) == t_:
-                        n_correct_char += 1
-                    n_correct += n_correct_char/float(len(target))
+                        n_correct += 1.0
                 else:
                     n_correct += 0.0
+
+	    n_total += float(len(target))
 
     # t_ = converter.unpickle(cputexts)
     raw_preds = converter.decode(preds.data, preds_size.data, raw=True)[:opt.n_test_disp]
     for raw_pred, pred, gt in zip(raw_preds, sim_preds, converter.unpickle(cpu_texts)):
         print('%-20s => %-20s, gt: %-20s' % (raw_pred, pred, gt))
 
-    accuracy = n_correct / float(max_iter * opt.batchSize)
-    print('Test loss: %f, accuracy: %f' % (loss_avg.val(), accuracy),n_correct)
+    accuracy = n_correct / float(n_total)
+    print('Test loss: %f, accuray: %f' % (loss_avg.val(), accuracy), n_correct, n_total)
 
 
 def trainBatch(net, criterion, optimizer):
