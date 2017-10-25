@@ -12,6 +12,7 @@ from PIL import Image
 import numpy as np
 import pickle
 import cPickle
+import numpy as np
 
 
 class lmdbDataset(Dataset):
@@ -59,10 +60,7 @@ class lmdbDataset(Dataset):
                 img = self.transform(img)
 
             str_key = 'stroke-%09d' % index
-            # print str(txn.get(str_key))
-            f_ = open(str(txn.get(str_key)),'rb')
-            stroke_data = pickle.load(f_)
-            f_.close()
+            stroke_data = pickle.loads(txn.get(str_key))
 
             label_key = 'label-%09d' % index
             label = str(txn.get(label_key))
@@ -70,7 +68,9 @@ class lmdbDataset(Dataset):
             if self.target_transform is not None:
                 label = self.target_transform(label)
 
-        print stroke_data
+            stroke_data = np.array(stroke_data)
+
+        # print stroke_data
         return (img, stroke_data, label)
 
 

@@ -15,16 +15,16 @@ import pickle
 from collections import OrderedDict
 import operator
 
-import models.combcrnn as crnn
+import models.crnn2 as crnn
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--trainroot', required=True, help='path to dataset')
 parser.add_argument('--valroot', required=True, help='path to dataset')
-parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
+parser.add_argument('--workers', type=int, help='number of data loading workers', default=6)
 parser.add_argument('--batchSize', type=int, default=32, help='input batch size')
 parser.add_argument('--imgH', type=int, default=32, help='the height of the input image to network')
 parser.add_argument('--imgW', type=int, default=512, help='the width of the input image to network')
-parser.add_argument('--nh', type=int, default=256, help='size of the lstm hidden state')
+parser.add_argument('--nh', type=int, default=263, help='size of the lstm hidden state')
 parser.add_argument('--niter', type=int, default=25, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.0001, help='learning rate for Critic, default=0.00005')
 parser.add_argument('--beta1', type=float, default=0.9, help='beta1 for adam. default=0.5')
@@ -60,18 +60,30 @@ if torch.cuda.is_available() and not opt.cuda:
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
 train_dataset = dataset.lmdbDataset(root=opt.trainroot)
+
 assert train_dataset
 if not opt.random_sample:
     sampler = dataset.randomSequentialSampler(train_dataset, opt.batchSize)
 else:
     sampler = None
+
 train_loader = torch.utils.data.DataLoader(
     train_dataset, batch_size=opt.batchSize,
     shuffle=True, sampler=sampler,
     num_workers=int(opt.workers),
     collate_fn=dataset.alignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio=opt.keep_ratio))
-test_dataset = dataset.lmdbDataset(
-    root=opt.valroot, transform=dataset.resizeNormalize((opt.imgW, opt.imgH)))
+
+test_dataset = dataset.lmdbDataset(root=opt.valroot)
+
+test_loader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=opt.batchSize,
+    shuffle=True, sampler=sampler,
+    num_workers=int(opt.workers),
+    collate_fn=dataset.alignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio=opt.keep_ratio))
+
+# test_loader = torch.utils.data.DataLoader(
+#     test_dataset, shuffle=True, batch_size=opt.batchSize,    num_workers=int(opt.workers), keep_ratio=opt.keep_ratio)
+
 
 nclass = 111 + 1
 nc = 1
@@ -137,20 +149,19 @@ def val(net, dataset, criterion, max_iter=100):
         p.requires_grad = False
 
     net.eval()
-    data_loader = torch.utils.data.DataLoader(
-        dataset, shuffle=True, batch_size=opt.batchSize, num_workers=int(opt.workers))
-    val_iter = iter(data_loader)
+    val_iter = iter(test_loader)
 
-    i = 0
     n_correct = 0
     loss_avg = utils.averager()
 
-    max_iter = min(max_iter, len(data_loader))
+    max_iter = min(max_iter, len(test_loader))
+
     for i in range(max_iter):
 
         data = val_iter.next()
-        i += 1
         cpu_images, cpu_stk, cpu_texts = data
+        cpu_stk = torch.from_numpy(np.array(list(cpu_stk))).type(torch.FloatTensor)
+
         batch_size = cpu_images.size(0)
         utils.loadData(image, cpu_images)
         utils.loadData(stkdata, cpu_stk)
@@ -193,6 +204,7 @@ def val(net, dataset, criterion, max_iter=100):
 def trainBatch(net, criterion, optimizer):
     data = train_iter.next()
     cpu_images, cpu_stk, cpu_texts = data
+    cpu_stk = torch.from_numpy(np.array(list(cpu_stk))).type(torch.FloatTensor)
 
     batch_size = cpu_images.size(0)
     utils.loadData(image, cpu_images)
