@@ -125,27 +125,29 @@ class CRNN(nn.Module):
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2)
+        print(x.size())
         x = x.permute(2, 0, 1)
+
 
         output = self.rnn(x)
 
         return output
 
 
-# from torch.autograd import Variable
-# import numpy as np
-# import cPickle
-#
-# path = '/home/rohit/Documents/cvitwork/ocrnew/testing/testword293_2.p'
-# f = open(path, 'rb')
-# stk = cPickle.load(f)
-# f.close()
-# stk = np.array(stk, dtype=float)
-#
-# stk = Variable(torch.from_numpy(stk)).float()
-#
-# stk = Variable(torch.randn(8, 524, 2))
-# im = Variable(torch.randn(8, 3, 32, 512))
-# net = CRNN(32, 3, 10, 256)
-#
-# output = net(im, stk)
+from torch.autograd import Variable
+import numpy as np
+import cPickle
+
+path = '/home/rohit/Documents/cvitwork/ocrnew/testing/testword293_2.p'
+f = open(path, 'rb')
+stk = cPickle.load(f)
+f.close()
+stk = np.array(stk, dtype=float)
+
+stk = Variable(torch.from_numpy(stk)).float()
+
+stk = Variable(torch.randn(8, 524, 2))
+im = Variable(torch.randn(8, 3, 32, 512))
+net = CRNN(32, 3, 10, 256)
+
+output = net(im, stk)
