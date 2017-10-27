@@ -20,6 +20,7 @@ class CRNN(nn.Module):
     def __init__(self, imgH, nc, nclass, nh, n_rnn=2, leakyRelu=False):
         super(CRNN, self).__init__()
         assert imgH % 16 == 0, 'imgH has to be a multiple of 16'
+	print("using combcrnn model")
 
         self.relu = nn.ReLU()
 
@@ -125,7 +126,7 @@ class CRNN(nn.Module):
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2)
-        print(x.size())
+        #print(x.size())
         x = x.permute(2, 0, 1)
 
 
@@ -134,20 +135,20 @@ class CRNN(nn.Module):
         return output
 
 
-from torch.autograd import Variable
-import numpy as np
-import cPickle
+#from torch.autograd import Variable
+#import numpy as np
+#import cPickle
 
-path = '/home/rohit/Documents/cvitwork/ocrnew/testing/testword293_2.p'
-f = open(path, 'rb')
-stk = cPickle.load(f)
-f.close()
-stk = np.array(stk, dtype=float)
+#path = '../../testing/testword293_2.p'
+#f = open(path, 'rb')
+#stk = cPickle.load(f)
+#f.close()
+#stk = np.array(stk, dtype=float)
 
-stk = Variable(torch.from_numpy(stk)).float()
+#stk = Variable(torch.from_numpy(stk)).float()
 
-stk = Variable(torch.randn(8, 524, 2))
-im = Variable(torch.randn(8, 3, 32, 512))
-net = CRNN(32, 3, 10, 256)
+#stk = Variable(torch.randn(8, 524, 2))
+#im = Variable(torch.randn(8, 3, 32, 512))
+#net = CRNN(32, 3, 10, 256)
 
-output = net(im, stk)
+#output = net(im, stk)
