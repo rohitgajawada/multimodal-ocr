@@ -34,9 +34,9 @@ class CRNN(nn.Module):
 
         cnn = nn.Sequential()
 
+        #parallel net1
         self.relu = nn.ReLU()
 
-        #parallel net1
         self.conv1a = nn.Conv2d(1, 128, kernel_size=(1, 5), stride=(1, 1))
         self.bn1a = nn.BatchNorm2d(128)
         self.mp1a = nn.MaxPool2d((1, 2), (1, 2))
@@ -51,7 +51,6 @@ class CRNN(nn.Module):
         self.bn4a = nn.BatchNorm2d(384)
         self.conv5a = nn.Conv2d(384, 128, kernel_size=(1, 1), stride=(1, 1))
         self.bn5a = nn.BatchNorm2d(128)
-
         ######
 
         def convRelu(i, batchNormalization=False):
