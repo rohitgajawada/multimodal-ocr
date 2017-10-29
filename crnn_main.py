@@ -144,6 +144,9 @@ def val(net, dataset, criterion, max_iter=100):
     n_correct = 0
     n_total = 0
 
+    correctword = 0
+    totalword = 0
+
     loss_avg = utils.averager()
 
     max_iter = min(max_iter, len(data_loader))
@@ -169,12 +172,18 @@ def val(net, dataset, criterion, max_iter=100):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
         for pred, target in zip(sim_preds, converter.unpickle(cpu_texts)):
+            corrflag = 1
             for p_,t_ in zip(pred.split(','),target):
                 if p_ != '':
                     if int(p_) == t_:
                         n_correct += 1.0
                 else:
                     n_correct += 0.0
+                    corrflag = 0
+
+            if corrflag == 1:
+                correctword += 1
+            totalword += 1
 
 	    n_total += float(len(target))
 
@@ -184,7 +193,9 @@ def val(net, dataset, criterion, max_iter=100):
         print('%-20s => %-20s, gt: %-20s' % (raw_pred, pred, gt))
 
     accuracy = n_correct / float(n_total)
-    print('Test loss: %f, accuray: %f' % (loss_avg.val(), accuracy), n_correct, n_total)
+    wordacc = correctword / float(totalword)
+    
+    print('Test loss: %f, accuracy: %f, wordlevel_accuracy: %f' % (loss_avg.val(), accuracy, wordacc), n_correct, n_total)
 
 
 def trainBatch(net, criterion, optimizer):
