@@ -7,5 +7,5 @@
 #SBATCH --time=72:00:00
 #SBATCH --mail-type=ALL
 
-python2 crnn_main.py --random_sample --trainroot='../train_80k/' --valroot='../val_15k/' --cuda --adadelta --batchSize=64
+python2 crnn_main_online.py --random_sample --trainroot='../train_online_80k/' --valroot='../val_online_15k/' --cuda --adadelta --batchSize=64
 

@@ -35,7 +35,7 @@ parser.add_argument('--crnn', default='', help="path to crnn (to continue traini
 parser.add_argument('--experiment', default=None, help='Where to store samples and models')
 parser.add_argument('--displayInterval', type=int, default=50, help='Interval to be displayed')
 parser.add_argument('--n_test_disp', type=int, default=5, help='Number of samples to display when test')
-parser.add_argument('--valInterval', type=int, default=1000, help='Interval to be displayed')
+parser.add_argument('--valInterval', type=int, default=3000, help='Interval to be displayed')
 parser.add_argument('--saveInterval', type=int, default=100000, help='Interval to be displayed')
 parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is rmsprop)')
 parser.add_argument('--adadelta', action='store_true', help='Whether to use adadelta (default is rmsprop)')
@@ -177,6 +177,8 @@ def val(net, dataset, criterion, max_iter=100):
                 if p_ != '':
                     if int(p_) == t_:
                         n_correct += 1.0
+		    else:
+			corrflag = 0
                 else:
                     n_correct += 0.0
                     corrflag = 0

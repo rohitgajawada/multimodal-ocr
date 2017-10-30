@@ -85,40 +85,42 @@ class CRNN(nn.Module):
             BidirectionalLSTM(640, nh, nh),
             BidirectionalLSTM(nh, nh, nclass))
 
-    def forward(self, input, stk1, n):
+    def forward(self, input, stk1):
+
+	n = 544
 
         conv = self.cnn(input)
-        print(conv.size())
+        #print(conv.size())
         b, c, h, w = conv.size()
         assert h == 1, "the height of conv must be 1"
 
         stk1 = stk1.contiguous().transpose(1, 2)
         stk1 = stk1.contiguous().view(-1, 1, 2, n)
 
-        print(stk1.size())
+        #print(stk1.size())
         x = self.relu(self.bn1a(self.conv1a(stk1)))
-        print(x.size())
+        #print(x.size())
         x = self.mp1a(x)
-        print(x.size())
+        #print(x.size())
         x = self.relu(self.bn2a(self.conv2a(x)))
-        print(x.size())
+        #print(x.size())
         x = self.mp2a(x)
-        print(x.size())
+        #print(x.size())
 
         x = self.relu(self.bn3a(self.conv3a(x)))
-        print(x.size())
+        #print(x.size())
         x = self.relu(self.bn4a(self.conv4a(x)))
-        print(x.size())
+        #print(x.size())
         x = self.relu(self.bn5a(self.conv5a(x)))
-        print(x.size())
+        #print(x.size())
 
         conv = torch.cat((conv, x), dim=1)
-        print(conv.size())
+        #print(conv.size())
 
         conv = conv.squeeze(2)
         conv = conv.permute(2, 0, 1)  # [w, b, c]
         output = self.rnn(conv)
-        print(output.size())
+        #print(output.size())
 
         return output
 

@@ -33,7 +33,7 @@ parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--crnn', default='', help="path to crnn (to continue training)")
 parser.add_argument('--experiment', default=None, help='Where to store samples and models')
 parser.add_argument('--displayInterval', type=int, default=100, help='Interval to be displayed')
-parser.add_argument('--valInterval', type=int, default=4000, help='Interval to be displayed')
+parser.add_argument('--valInterval', type=int, default=3000, help='Interval to be displayed')
 parser.add_argument('--saveInterval', type=int, default=10000, help='Interval to be displayed')
 parser.add_argument('--n_test_disp', type=int, default=5, help='Number of samples to display when test')
 parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is rmsprop)')
@@ -187,10 +187,13 @@ def val(net, dataset, criterion, max_iter=100):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         sim_preds = converter.decode(preds.data, preds_size.data, raw=False)
         for pred, target in zip(sim_preds, converter.unpickle(cpu_texts)):
+	    corrflag = 1
             for p_,t_ in zip(pred.split(','),target):
                 if p_ != '':
                     if int(p_) == t_:
                         n_correct += 1.0
+		    else:
+			corrflag = 0
                 else:
                     n_correct += 0.0
                     corrflag = 0
@@ -251,7 +254,7 @@ for epoch in range(opt.niter):
                   (epoch, opt.niter, i, len(train_loader), loss_avg.val()))
             loss_avg.reset()
 
-        if i % opt.valInterval == 0 and epoch >=2:
+        if i % opt.valInterval == 0:
             val(crnn, test_dataset, criterion)
 
         # do checkpointing
