@@ -15,7 +15,7 @@ import pickle
 from collections import OrderedDict
 import operator
 
-import models.crnn3 as crnn
+import models.windowmodel as crnn
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--trainroot', required=True, help='path to dataset')

@@ -106,7 +106,7 @@ def transform_online(data,size):
 
 target_lis = []
 styles = []
-for i in range(1,26):
+for i in range(1,51):
     styles.append(str(i)+'.stk')
 
 SC_triple = {"u'\\u0d15'u'\\u0d4d'u'\\u0d15'":'69',"u'\\u0d15'u'\\u0d4d'u'\\u0d24'":'70',"u'\\u0d15'u'\\u0d4d'u'\\u0d37'":'71',"u'\\u0d17'u'\\u0d4d'u'\\u0d28'":'72',"u'\\u0d17'u'\\u0d4d'u'\\u0d2e'":'73',"u'\\u0d19'u'\\u0d4d'u'\\u0d15'":'74',"u'\\u0d19'u'\\u0d4d'u'\\u0d19'":'75',"u'\\u0d1a'u'\\u0d4d'u'\\u0d1a'":'76',"u'\\u0d1c'u'\\u0d4d'u'\\u0d1c'":'77',"u'\\u0d1c'u'\\u0d4d'u'\\u0d1e'":'78',"u'\\u0d1e'u'\\u0d4d'u'\\u0d1a'":'79',"u'\\u0d1e'u'\\u0d4d'u'\\u0d1e'":'80',"u'\\u0d1f'u'\\u0d4d'u'\\u0d1f'":'81',"u'\\u0d23'u'\\u0d4d'u'\\u0d1f'":'82',"u'\\u0d23'u'\\u0d4d'u'\\u0d21'":'83',"u'\\u0d23'u'\\u0d4d'u'\\u0d2e'":'84',"u'\\u0d24'u'\\u0d4d'u'\\u0d24'":'85',"u'\\u0d24'u'\\u0d4d'u'\\u0d25'":'86',"u'\\u0d24'u'\\u0d4d'u'\\u0d28'":'87',"u'\\u0d24'u'\\u0d4d'u'\\u0d2d'":'88',"u'\\u0d24'u'\\u0d4d'u'\\u0d2e'":'89',"u'\\u0d24'u'\\u0d4d'u'\\u0d38'":'90',"u'\\u0d26'u'\\u0d4d'u'\\u0d26'":'91',"u'\\u0d26'u'\\u0d4d'u'\\u0d27'":'92',"u'\\u0d28'u'\\u0d4d'u'\\u0d24'":'93',"u'\\u0d28'u'\\u0d4d'u'\\u0d25'":'94',"u'\\u0d28'u'\\u0d4d'u'\\u0d26'":'95',"u'\\u0d28'u'\\u0d4d'u'\\u0d27'":'96',"u'\\u0d28'u'\\u0d4d'u'\\u0d28'":'97',"u'\\u0d2e'u'\\u0d4d'u'\\u0d2a'":'98',"u'\\u0d28'u'\\u0d4d'u'\\u0d2e'":'99',"u'\\u0d2c'u'\\u0d4d'u'\\u0d2c'":'101',"u'\\u0d2e'u'\\u0d4d'u'\\u0d2e'":'102',"u'\\u0d2f'u'\\u0d4d'u'\\u0d2f'":'103',"u'\\u0d35'u'\\u0d4d'u'\\u0d35'":'104',"u'\\u0d36'u'\\u0d4d'u'\\u0d1a'":'105',"u'\\u0d39'u'\\u0d4d'u'\\u0d28'":'106',"u'\\u0d39'u'\\u0d4d'u'\\u0d2e'":'107',"u'\\u0d17'u'\\u0d4d'u'\\u0d26'":'109',"u'\\u0d1e'u'\\u0d4d'u'\\u0d1c'":'110',"u'\\u0d23'u'\\u0d4d'u'\\u0d23'":"u'\u0d23'","u'\\u0d2a'u'\\u0d4d'u'\\u0d2a'":"u'\u0d2a'"}
@@ -138,9 +138,9 @@ save_interval = 20000 # After how many words irrespective of styles
 #fil = open('/home/rohit/Documents/sreekarfiles/Targetstmp.txt','w+')
 
 # Path to the images
-path = '/home/sreekar/Desktop/FinalStrokes1/'
-num_styles = 2
-f = open('/home/sreekar/Desktop/lol.txt','r+')
+path = './FinalStrokes1/'
+num_styles = 1
+f = open('./malWords','r+')
 for line in f:
     # print(line)
     # print("---")
@@ -421,7 +421,7 @@ for line in f:
         begin_pntr = 0
         cnt = 0
         temp_ = np.max(word[:,0])
-        plt.figure(figsize=(256/100.0, img_height/100.0), dpi=100)
+        plt.figure(figsize=(512/100.0, img_height/100.0), dpi=100)
         for i in range(word.shape[0]):
             if word[i,0] == str_delim and cnt%delim_repetitions == 0:
                 plt.plot(word[begin_pntr:i,0],word[begin_pntr:i,1],color = 'black')
@@ -433,7 +433,7 @@ for line in f:
                 continue
 
         # print np.array(word_stroke).shape
-        final_online = transform_online(word_stroke,524)
+        final_online = transform_online(word_stroke,544)
         # print final_online
         if final_online == -1:
             print 'here'
@@ -449,7 +449,8 @@ for line in f:
 
         t_ = pickle.dumps(target)
         target_lis.append(t_)
-    if word_count == 10000:
+
+    if word_count == 100000:
         break
 
     # if word_count%save_interval == 0:

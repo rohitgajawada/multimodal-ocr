@@ -22,10 +22,10 @@ class BidirectionalLSTM(nn.Module):
 
 class CRNN(nn.Module):
 
-    def __init__(self, imgH, nc, nclass, nh, n_rnn=2, leakyRelu=False):
+    def __init__(self, imgH, nc, nclass, nh, n, n_rnn=2, leakyRelu=False):
         super(CRNN, self).__init__()
         assert imgH % 16 == 0, 'imgH has to be a multiple of 16'
-        print("Using super model")
+        print("Using window model")
 
         ks = [3, 3, 3, 3, 3, 3, 2]
         ps = [1, 1, 1, 1, 1, 1, 0]
@@ -35,6 +35,7 @@ class CRNN(nn.Module):
         cnn = nn.Sequential()
 
         #parallel net1
+        self.n = n
         self.relu = nn.ReLU()
 
         self.conv1a = nn.Conv2d(1, 128, kernel_size=(1, 5), stride=(1, 1))
@@ -49,9 +50,11 @@ class CRNN(nn.Module):
         self.bn3a = nn.BatchNorm2d(384)
         self.conv4a = nn.Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1))
         self.bn4a = nn.BatchNorm2d(384)
+        self.conv4b = nn.Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1))
+        self.bn4b = nn.BatchNorm2d(384)
         self.conv5a = nn.Conv2d(384, 128, kernel_size=(1, 1), stride=(1, 1))
         self.bn5a = nn.BatchNorm2d(128)
-        ######
+
 
         def convRelu(i, batchNormalization=False):
             nIn = nc if i == 0 else nm[i - 1]
@@ -85,57 +88,64 @@ class CRNN(nn.Module):
             BidirectionalLSTM(640, nh, nh),
             BidirectionalLSTM(nh, nh, nclass))
 
+
     def forward(self, input, stk1):
 
-        n = 544
+        maxlen = 256
+        windowlength = 32
+        conv_pieces = []
+        for start in range(0, maxlen - windowlength, windowlength/2):
+            piece = input.narrow(3, start, windowlength)
 
-        conv = self.cnn(input)
-        #print(conv.size())
-        b, c, h, w = conv.size()
-        assert h == 1, "the height of conv must be 1"
+            conv = self.cnn(piece)
+            conv.squeeze_(2)
+            conv_pieces.append(conv)
+
+        full_conv = torch.cat(conv_pieces, dim=2)
+
+        n = self.n
+        b, c, w = full_conv.size()
 
         stk1 = stk1.contiguous().transpose(1, 2)
         stk1 = stk1.contiguous().view(-1, 1, 2, n)
 
-        #print(stk1.size())
-        x = self.relu(self.bn1a(self.conv1a(stk1)))
-        #print(x.size())
-        x = self.mp1a(x)
-        #print(x.size())
-        x = self.relu(self.bn2a(self.conv2a(x)))
-        #print(x.size())
-        x = self.mp2a(x)
-        #print(x.size())
+        windowlength = 64
+        stk_pieces = []
+        for start in range(0, n - windowlength, windowlength/2):
+            stk_piece = stk1.narrow(3, start, windowlength)
 
-        x = self.relu(self.bn3a(self.conv3a(x)))
-        #print(x.size())
-        x = self.relu(self.bn4a(self.conv4a(x)))
-        #print(x.size())
-        x = self.relu(self.bn5a(self.conv5a(x)))
-        #print(x.size())
+            x = self.relu(self.bn1a(self.conv1a(stk_piece)))
+            x = self.mp1a(x)
+            x = self.relu(self.bn2a(self.conv2a(x)))
+            x = self.mp2a(x)
 
-        conv = torch.cat((conv, x), dim=1)
-        #print(conv.size())
+            x = self.relu(self.bn3a(self.conv3a(x)))
+            x = self.relu(self.bn4a(self.conv4a(x)))
+            x = self.relu(self.bn5a(self.conv5a(x)))
 
-        conv = conv.squeeze(2)
-        conv = conv.permute(2, 0, 1)  # [w, b, c]
-        output = self.rnn(conv)
-        #print(output.size())
+            x.squeeze_(2)
+            stk_pieces.append(x)
 
+        full_stk = torch.cat(stk_pieces, dim=2)
+
+        #fusion layer?
+        inter = torch.cat((full_conv, full_stk), dim=1)
+
+        inter = inter.permute(2, 0, 1)  # [w, b, c]
+        output = self.rnn(inter)
         return output
 
 
 path = '/home/rohit/Documents/cvitwork/ocrnew/offline-online-cvit/samples/testword98.p'
 f = open(path, 'rb')
-stk = cPickle.load(f)
+stk2 = cPickle.load(f)
 f.close()
-stk = np.array(stk, dtype=float)
-stk = Variable(torch.from_numpy(stk)).float()
+stk2 = np.array(stk2, dtype=float)
+stk2 = Variable(torch.from_numpy(stk2)).float()
 
-n = 544
+n = 484 #size is 544x2
 stk = Variable(torch.randn(8, n, 2))
-im = Variable(torch.randn(8, 3, 32, 512))
-net = CRNN(32, 3, 10, 256)
-
+im = Variable(torch.randn(8, 3, 32, 256))
+net = CRNN(32, 3, 112, 256, n)
 output = net(im, stk)
 print(output.size())
