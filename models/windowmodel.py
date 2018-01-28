@@ -50,8 +50,6 @@ class CRNN(nn.Module):
         self.bn3a = nn.BatchNorm2d(384)
         self.conv4a = nn.Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1))
         self.bn4a = nn.BatchNorm2d(384)
-        self.conv4b = nn.Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1))
-        self.bn4b = nn.BatchNorm2d(384)
         self.conv5a = nn.Conv2d(384, 128, kernel_size=(1, 1), stride=(1, 1))
         self.bn5a = nn.BatchNorm2d(128)
 
@@ -94,6 +92,7 @@ class CRNN(nn.Module):
         maxlen = 256
         windowlength = 32
         conv_pieces = []
+
         for start in range(0, maxlen - windowlength, windowlength/2):
             piece = input.narrow(3, start, windowlength)
 
@@ -104,6 +103,7 @@ class CRNN(nn.Module):
         full_conv = torch.cat(conv_pieces, dim=2)
 
         n = self.n
+        print("stk len used is ", n)
         b, c, w = full_conv.size()
 
         stk1 = stk1.contiguous().transpose(1, 2)
@@ -128,6 +128,7 @@ class CRNN(nn.Module):
 
         full_stk = torch.cat(stk_pieces, dim=2)
 
+        # print(full_conv.size(), full_stk.size())
         #fusion layer?
         inter = torch.cat((full_conv, full_stk), dim=1)
 
